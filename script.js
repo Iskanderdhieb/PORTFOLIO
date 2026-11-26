@@ -8,6 +8,52 @@ const backToTop = document.querySelector(".back-to-top");
 const themeButton = document.querySelector(".theme-toggle");
 const langButton = document.querySelector(".lang-toggle");
 
+// Warn on common inspection gestures without blocking the page with a native alert.
+const showPrivateWarning = () => {
+  let notice = document.querySelector(".private-warning");
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.className = "private-warning";
+    notice.innerHTML = '<section class="private-warning-panel" role="alertdialog" aria-modal="true" aria-labelledby="private-warning-title"><div class="private-warning-top"><span><kbd>ESC</kbd><span class="private-warning-esc-label"></span></span><button class="private-warning-close" type="button" aria-label="Close">&times;</button></div><div class="private-warning-content"><span class="private-warning-icon" aria-hidden="true">!</span><h2 id="private-warning-title"></h2><p></p><button class="private-warning-home" type="button"></button></div></section>';
+    document.body.append(notice);
+    const closeWarning = () => notice.classList.remove("is-visible");
+    notice.querySelector(".private-warning-close").addEventListener("click", closeWarning);
+    notice.querySelector(".private-warning-home").addEventListener("click", () => {
+      closeWarning();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeWarning();
+    });
+  }
+  const isFrench = document.documentElement.lang === "fr";
+  notice.querySelector(".private-warning-esc-label").textContent = isFrench ? "pour fermer" : "to close";
+  notice.querySelector(".private-warning-close").setAttribute("aria-label", isFrench ? "Fermer" : "Close");
+  notice.querySelector("h2").textContent = isFrench ? "Acc\u00e8s non autoris\u00e9" : "Unauthorized Access";
+  notice.querySelector("p").textContent = isFrench
+    ? "Vous n'\u00eates pas autoris\u00e9 \u00e0 inspecter cette page."
+    : "You don't have permission to inspect this page.";
+  notice.querySelector(".private-warning-home").textContent = isFrench ? "Retour \u00e0 l'accueil" : "Return to Home";
+  notice.classList.add("is-visible");
+};
+
+document.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
+  showPrivateWarning();
+});
+
+document.addEventListener("keydown", (event) => {
+  const key = event.key.toLowerCase();
+  const inspectShortcut = key === "f12"
+    || (event.ctrlKey && event.shiftKey && ["i", "j", "c"].includes(key))
+    || (event.ctrlKey && key === "u");
+
+  if (!inspectShortcut) return;
+  event.preventDefault();
+  event.stopPropagation();
+  showPrivateWarning();
+}, true);
+
 const translations = {
   en: {
     title: "Iskander Dhieb | Electrical Engineering",
